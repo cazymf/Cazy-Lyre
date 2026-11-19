@@ -1,0 +1,67 @@
+name: Build Cazy Lyre Windows release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: cazy-lyre-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+      - name: Read current app version
+        id: version
+        run: |
+          echo "value=$(python3 -c 'import json; print(json.load(open("release.json"))["version"])')" >> "$GITHUB_OUTPUT"
+      - name: Check if release already exists
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run Go tests
+        if: steps.existing.outputs.exists == 'false'
+        env:
+          GO111MODULE: 'off'
+        run: go test .
+      - name: Build Windows x64 app
+        if: steps.existing.outputs.exists == 'false'
+        env:
+          GO111MODULE: 'off'
+          GOOS: windows
+          GOARCH: amd64
+          CGO_ENABLED: 0
+        run: |
+          go build -trimpath -ldflags '-H=windowsgui -s -w' -o Cazy_Lyre.exe .
+          python3 embed_icon_pe.py Cazy_Lyre.exe Cazy_Pink_Icon.ico || echo 'Icon embed skipped; EXE is still valid'
+      - name: Package release ZIP and checksum
+        if: steps.existing.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: python3 scripts/package_release.py "$VERSION"
+      - name: Publish GitHub Release
+        if: steps.existing.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          gh release create "v${VERSION}" \
+            dist/Cazy_Lyre_Windows.zip \
+            dist/Cazy_Lyre_Windows.zip.sha256 \
+            --title "Cazy Lyre v${VERSION}" \
+            --notes "Cazy Lyre Windows release v${VERSION}. Built by GitHub Actions from the repository's source. Includes automatic GitHub updates." \
+            --latest

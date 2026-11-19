@@ -1,0 +1,10 @@
+Cazy_Lyre.exe
+Cazy_Lyre_v*.exe
+dist/
+*.log
+*.zip
+*.tmp
+__pycache__/
+.venv/
+library.json
+*api_key*
