@@ -323,10 +323,10 @@ func paintUpdates(hdc uintptr, w, h int) {
 	textDraw(hdc, "GITHUB UPDATES", 308, 417, 260, 21, palette.accent2, app.microFont, DT_LEFT)
 	textDraw(hdc, "GitHub repository (owner/name), e.g. cazymf/Cazy-Lyre", 309, 440, w-365, 24, palette.white, app.subFont, DT_LEFT)
 	rounded(hdc, 301, 468, w-347, 32, palette.edit, palette.line, 8)
-	button(hdc, "up-save", "SAVE REPO", 307, 514, 129, 34, 0)
-	button(hdc, "up-check", "CHECK FOR UPDATES", 446, 514, 182, 34, 1)
+	button(hdc, "up-save", "SAVE REPO", 307, 514, 129, 38, 0)
+	button(hdc, "up-check", "CHECK FOR UPDATES", 446, 514, 182, 38, 1)
 	if updater.latest.Version != "" {
-		button(hdc, "up-download", "DOWNLOAD + PREPARE", 639, 514, 193, 34, 2)
+		button(hdc, "up-download", "DOWNLOAD + PREPARE", 639, 514, 193, 38, 2)
 	}
 	button(hdc, "up-local", "INSTALL FROM ZIP", 305, 582, 196, 38, 1)
 	if updater.readyDir != "" {
