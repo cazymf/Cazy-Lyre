@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-const lyreVersion = "3.9.0"
+const lyreVersion = "3.9.1"
 
 // Update feeds are plain HTTPS JSON. Each download must match the publisher's SHA-256.
 type releaseManifest struct {
