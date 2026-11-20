@@ -31,6 +31,7 @@ type updateEvent struct {
 	Detail   string
 	Err      error
 	Silent   bool
+	SongReport songSyncReport
 }
 
 var updateEvents = make(chan updateEvent, 4)
@@ -247,7 +248,30 @@ func selectUpdateZip() {
 func handleUpdateEvent() {
 	select {
 	case e := <-updateEvents:
-		updater.busy = false
+        if e.Kind == "songs" {
+            songSyncBusy = false
+            if e.Err != nil {
+                updater.state = "Song Sync failed: " + e.Err.Error()
+                status(updater.state)
+                msgBox("Cazy Lyre Song Sync", updater.state, MB_OK|MB_ICONERROR)
+                return
+            }
+            paths := make([]string, 0, len(e.SongReport.Imported))
+            for _, item := range e.SongReport.Imported { paths = append(paths, item.Path) }
+            if len(paths) > 0 { addPaths(paths) }
+            for _, item := range e.SongReport.Imported {
+                for i := range app.items {
+                    if strings.EqualFold(app.items[i].Path, item.Path) {
+                        app.items[i].Name = item.Title
+                    }
+                }
+            }
+            if len(paths)>0 { save() }
+            updater.state = fmt.Sprintf("SONG SYNC: %d downloaded, %d already current. %d in GitHub library.", e.SongReport.Downloaded, e.SongReport.Unchanged, len(paths))
+            status(updater.state)
+            return
+        }
+        updater.busy = false
 		if e.Err != nil {
 			updater.state = "Update failed: " + e.Err.Error()
 			status(updater.state)
@@ -332,6 +356,8 @@ func paintUpdates(hdc uintptr, w, h int) {
 	if updater.readyDir != "" {
 		button(hdc, "up-apply", "INSTALL + RESTART", 512, 582, 212, 38, 2)
 	}
+    // Sync the independent music catalog; unlike app updates this never restarts the app.
+    button(hdc, "song-sync", "SYNC SONGS", 740, 582, 156, 38, 2)
 	msg := updater.state
 	if updater.busy {
 		msg = "WORKING: " + msg
@@ -340,6 +366,8 @@ func paintUpdates(hdc uintptr, w, h int) {
 }
 func clickUpdateAction(id string) bool {
 	switch id {
+	case "song-sync":
+        beginSongSync()
 	case "up-save":
 		if e := saveUpdaterRepo(); e != nil {
 			msgBox("Update feed", e.Error(), MB_OK|MB_ICONERROR)
