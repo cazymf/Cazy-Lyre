@@ -11,7 +11,7 @@ import (
 
 // Tempo Lab edits ONLY note timestamps in recognized AHK v2 music event arrays.
 // The original is never overwritten, hotkeys and key combinations are untouched.
-var tempoArrayBegin = regexp.MustCompile(`(?i)^[ \t]*(?:notes|song|noteevents|events|songevents)[ \t]*:=[ \t]*\[[ \t]*$`)
+var tempoArrayBegin = regexp.MustCompile(`(?i)^[ \t]*(?:global[ \t]+)?(?:notes|song|noteevents|events|songevents)[ \t]*:=[ \t]*\[[ \t]*$`)
 var tempoArrayEnd = regexp.MustCompile(`^[ \t]*\][ \t]*(?:;[^\r\n]*)?$`)
 var tempoNoteLine = regexp.MustCompile(`(?i)^([ \t]*\[[ \t]*)([0-9]+)([ \t]*,[ \t]*")([QWERTYUASDFGHJZXCVBNM]+)("[ \t]*\][ \t]*,?[ \t]*(?:;[^\r\n]*)?)$`)
 var tempoEscHotkey = regexp.MustCompile(`(?im)^[ \t]*(?:[$~*^!+#<>])*[ \t]*Esc[ \t]*::`)
