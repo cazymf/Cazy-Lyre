@@ -926,7 +926,7 @@ func paint(hwnd uintptr) {
 	textDraw(hdc, "ADMIN SESSION ACTIVE", 55, h-132, 162, 27, palette.white, app.microFont, DT_LEFT)
 	textDraw(hdc, "Elevated macro launcher", 34, h-97, 181, 20, palette.muted, app.subFont, DT_LEFT)
 	textDraw(hdc, "ESC stays untouched", 34, h-75, 181, 20, palette.green, app.subFont, DT_LEFT)
-	textDraw(hdc, "v3.9.1   ·   ADMIN MODE", 22, h-28, 210, 15, palette.subtle, app.microFont, DT_LEFT)
+	textDraw(hdc, "v3.9.2   ·   ADMIN MODE", 22, h-28, 210, 15, palette.subtle, app.microFont, DT_LEFT)
 	// Header
 	textDraw(hdc, "CONTROL CENTER", 284, 29, 450, 25, palette.accent2, app.microFont, DT_LEFT)
 	title := "Your macros, organized."
@@ -1496,7 +1496,7 @@ func winProc(hwnd uintptr, message uint32, wParam, lParam uintptr) (out uintptr)
 		if x := recover(); x != nil {
 			logPath := filepath.Join(filepath.Dir(appDataPath()), "last_error.log")
 			_ = os.MkdirAll(filepath.Dir(logPath), 0755)
-			log := fmt.Sprintf("Cazy Lyre v3.9.1 crash\nMessage: 0x%X\nError: %v\n%s\n", message, x, debug.Stack())
+			log := fmt.Sprintf("Cazy Lyre v3.9.2 crash\nMessage: 0x%X\nError: %v\n%s\n", message, x, debug.Stack())
 			_ = os.WriteFile(logPath, []byte(log), 0644)
 			out = 0
 		}
