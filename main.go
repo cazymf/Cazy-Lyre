@@ -926,7 +926,7 @@ func paint(hwnd uintptr) {
 	textDraw(hdc, "ADMIN SESSION ACTIVE", 55, h-132, 162, 27, palette.white, app.microFont, DT_LEFT)
 	textDraw(hdc, "Elevated macro launcher", 34, h-97, 181, 20, palette.muted, app.subFont, DT_LEFT)
 	textDraw(hdc, "ESC stays untouched", 34, h-75, 181, 20, palette.green, app.subFont, DT_LEFT)
-	textDraw(hdc, "v3.10.0   ·   ADMIN MODE", 22, h-28, 210, 15, palette.subtle, app.microFont, DT_LEFT)
+	textDraw(hdc, "v3.11.0   ·   ADMIN MODE", 22, h-28, 210, 15, palette.subtle, app.microFont, DT_LEFT)
 	// Header
 	textDraw(hdc, "CONTROL CENTER", 284, 29, 450, 25, palette.accent2, app.microFont, DT_LEFT)
 	title := "Your macros, organized."
@@ -957,6 +957,9 @@ func paint(hwnd uintptr) {
 	if app.page == "tempo" {
 		title = "Tempo Lab."
 	}
+	if app.page == "timeline" {
+		title = "Timeline Lab."
+	}
 	textDraw(hdc, title, 282, 53, w-550, 47, palette.white, app.titleFont, DT_LEFT)
 	subtitle := "A dedicated home for every script in your setup."
 	if app.page == "updates" {
@@ -976,6 +979,9 @@ func paint(hwnd uintptr) {
 	}
 	if app.page == "tempo" {
 		subtitle = "Speed up already-created AHK songs without losing your original."
+	}
+	if app.page == "timeline" {
+		subtitle = "Trim intros, select where playback starts and ends, remove sections; keep your original."
 	}
 	textDraw(hdc, subtitle, 284, 97, w-320, 21, palette.muted, app.subFont, DT_LEFT)
 	button(hdc, "import", "+  IMPORT MACROS", w-205, 50, 173, 40, 1)
@@ -1024,6 +1030,8 @@ func paint(hwnd uintptr) {
 		paintSongSearch(hdc, w, h)
 	} else if app.page == "tempo" {
 		paintTempo(hdc, w, h)
+	} else if app.page == "timeline" {
+		paintTimeline(hdc, w, h)
 	} else {
 		textDraw(hdc, "YOUR LIBRARY", 283, 278, 280, 26, palette.white, app.itemFont, DT_LEFT)
 		labelCount(hdc, len(app.rows), 408, 278)
@@ -1097,7 +1105,7 @@ func paint(hwnd uintptr) {
 		button(hdc, "folder", "OPEN FOLDER", 402, h-96, 136, 37, 0)
 		button(hdc, "remove", "REMOVE", 547, h-96, 113, 37, 3)
 		button(hdc, "tempo-open", "SPEED UP", 672, h-96, 131, 37, 2)
-		textDraw(hdc, fmt.Sprintf("%d saved   ·   %d favorites", len(app.items), favoriteCount()), w-309, h-96, 267, 37, palette.subtle, app.microFont, DT_RIGHT)
+		button(hdc, "tl-open", "EDIT TIMELINE", 813, h-96, 177, 37, 1)
 	}
 	fill(hdc, 282, h-45, w-314, 1, palette.line)
 	textDraw(hdc, byteshort(app.status, 115), 284, h-39, w-350, 29, palette.muted, app.subFont, DT_LEFT)
@@ -1318,6 +1326,7 @@ func switchPage(page string) {
 	redraw()
 }
 func click(id string) {
+	if clickTimelineAction(id) { return }
 	if clickUpdateAction(id) {
 		return
 	}
@@ -1496,7 +1505,7 @@ func winProc(hwnd uintptr, message uint32, wParam, lParam uintptr) (out uintptr)
 		if x := recover(); x != nil {
 			logPath := filepath.Join(filepath.Dir(appDataPath()), "last_error.log")
 			_ = os.MkdirAll(filepath.Dir(logPath), 0755)
-			log := fmt.Sprintf("Cazy Lyre v3.10.0 crash\nMessage: 0x%X\nError: %v\n%s\n", message, x, debug.Stack())
+			log := fmt.Sprintf("Cazy Lyre v3.11.0 crash\nMessage: 0x%X\nError: %v\n%s\n", message, x, debug.Stack())
 			_ = os.WriteFile(logPath, []byte(log), 0644)
 			out = 0
 		}
@@ -1621,6 +1630,10 @@ func winProc(hwnd uintptr, message uint32, wParam, lParam uintptr) (out uintptr)
 		return 0
 	case WM_MOUSEMOVE:
 		x, y := signedword(lParam), int(int16((lParam>>16)&0xFFFF))
+		if app.page == "timeline" && (wParam & 1) != 0 && x>=312 && x<=app.w-67 && y>=382 && y<=457 {
+			timelineScrub(x)
+			return 0
+		}
 		m := at(x, y)
 		if m != app.hovered {
 			app.hovered = m
@@ -1629,6 +1642,10 @@ func winProc(hwnd uintptr, message uint32, wParam, lParam uintptr) (out uintptr)
 		return 0
 	case WM_LBUTTONDOWN:
 		x, y := signedword(lParam), int(int16((lParam>>16)&0xFFFF))
+		if app.page == "timeline" && x>=312 && x<=app.w-67 && y>=382 && y<=457 {
+			timelineScrub(x)
+			return 0
+		}
 		id := at(x, y)
 		if app.renamePath != "" && id != "rename" {
 			finishRename()
@@ -1944,7 +1961,7 @@ func main() {
 		fmt.Println("Could not register window class:", err)
 		return
 	}
-	title := utf("Cazy Lyre v3.10.0 | Windsong Lyre Studio")
+	title := utf("Cazy Lyre v3.11.0 | Windsong Lyre Studio")
 	hwnd, _, err := pCreateWindowExW.Call(0, uintptr(unsafe.Pointer(cls)), uintptr(unsafe.Pointer(title)),
 		WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX|WS_VISIBLE,
 		CW_USEDEFAULT, CW_USEDEFAULT, 1120, 755, 0, 0, hinst, 0)
