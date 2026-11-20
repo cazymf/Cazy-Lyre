@@ -34,7 +34,7 @@ func TestStageRelease(t *testing.T) {
 		t.Fatal(e)
 	}
 	z := zip.NewWriter(f)
-	for n, content := range map[string]string{"Cazy_Lyre_v3_10/release.json": `{"version":"3.10.0","application":"Cazy Lyre"}`, "Cazy_Lyre_v3_10/Cazy_Lyre.exe": "MZdummy", "Cazy_Lyre_v3_10/README.txt": "Works"} {
+	for n, content := range map[string]string{"Cazy_Lyre_v3_10/release.json": `{"version":"3.10.1","application":"Cazy Lyre"}`, "Cazy_Lyre_v3_10/Cazy_Lyre.exe": "MZdummy", "Cazy_Lyre_v3_10/README.txt": "Works"} {
 		w, e := z.Create(n)
 		if e != nil {
 			t.Fatal(e)
@@ -47,11 +47,11 @@ func TestStageRelease(t *testing.T) {
 		t.Fatal(e)
 	}
 	f.Close()
-	desc, n, e := stageReleaseZip(f.Name(), filepath.Join(tmp, "stage"), "3.10.0")
+	desc, n, e := stageReleaseZip(f.Name(), filepath.Join(tmp, "stage"), "3.10.1")
 	if e != nil {
 		t.Fatal(e)
 	}
-	if desc.Version != "3.10.0" || n != 3 {
+	if desc.Version != "3.10.1" || n != 3 {
 		t.Fatalf("unexpected result %#v %d", desc, n)
 	}
 	if _, e = os.Stat(filepath.Join(tmp, "stage", "Cazy_Lyre.exe")); e != nil {
