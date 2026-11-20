@@ -100,3 +100,22 @@ func TestTempoActualKnownSongs(t *testing.T) {
 		}
 	}
 }
+
+// Test the exact declaration pattern produced by the MP3 -> lyre macro converter.
+func TestTempoAcceptsGlobalNotesArray(t *testing.T) {
+    song := "#Requires AutoHotkey v2.0\nglobal notes := [\n    [0, \"h\"],\n    [316, \"ve\"],\n    [947, \"w\"]\n]\nXButton1::StartPlayback()\nXButton2::StopPlayback()\nF12::ExitApp()\n"
+    got, report, err := applySongTempo(song, 2.0)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if report.Events != 3 || report.OriginalDurationMs != 947 || report.NewDurationMs != 474 {
+        t.Fatalf("bad timing: %+v", report)
+    }
+    if !strings.Contains(got, "global notes := [") ||
+       !strings.Contains(got, "[158, \"ve\"]") ||
+       !strings.Contains(got, "XButton1::StartPlayback()") ||
+       !strings.Contains(got, "XButton2::StopPlayback()") ||
+       !strings.Contains(got, "F12::ExitApp()") {
+        t.Fatal("did not preserve chord or hotkeys")
+    }
+}
