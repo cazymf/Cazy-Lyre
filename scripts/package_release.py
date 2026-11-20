@@ -20,7 +20,7 @@ extra = [
     'Create_Desktop_Shortcut.cmd', 'Create_Cazy_Lyre_Desktop_Shortcut.ps1',
     'INSTALL_CAPTURE_ENGINE.cmd', 'INSTALL_VIDEO_ENGINE.cmd',
     'capture_lyre.py', 'sampled_preview.py', 'video_notes.py', 'Lyre_Demo.mid',
-    'README.txt', 'README_v3_7_TEMPO_LAB.md', 'README_v3_9_GITHUB_UPDATER.md',
+    'README.txt', 'README_v3_7_TEMPO_LAB.md', 'README_v3_9_GITHUB_UPDATER.md', 'README_v3_10_SONG_SYNC.md',
 ]
 missing = [n for n in must_have if not (ROOT / n).is_file()]
 if missing:
